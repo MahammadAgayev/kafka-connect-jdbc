@@ -180,6 +180,8 @@ public class JdbcSourceTask extends SourceTask {
         = config.getString(JdbcSourceTaskConfig.INCREMENTING_COLUMN_NAME_CONFIG);
     List<String> timestampColumns
         = config.getList(JdbcSourceTaskConfig.TIMESTAMP_COLUMN_NAME_CONFIG);
+    String timestampColumnType
+            = config.getString(JdbcSourceConnectorConfig.TIMESTAMP_COLUMN_TYPE_CONFIG);
     Long timestampDelayInterval
         = config.getLong(JdbcSourceTaskConfig.TIMESTAMP_DELAY_INTERVAL_MS_CONFIG);
     boolean validateNonNulls
@@ -250,6 +252,7 @@ public class JdbcSourceTask extends SourceTask {
                 tableOrQuery,
                 topicPrefix,
                 null,
+                    timestampColumnType,
                 incrementingColumn,
                 offset,
                 timestampDelayInterval,
@@ -266,6 +269,7 @@ public class JdbcSourceTask extends SourceTask {
                 tableOrQuery,
                 topicPrefix,
                 timestampColumns,
+                timestampColumnType,
                 offset,
                 timestampDelayInterval,
                 timeZone,
@@ -281,6 +285,7 @@ public class JdbcSourceTask extends SourceTask {
                 tableOrQuery,
                 topicPrefix,
                 timestampColumns,
+                timestampColumnType,
                 incrementingColumn,
                 offset,
                 timestampDelayInterval,

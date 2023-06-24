@@ -54,7 +54,7 @@ public class TimestampIncrementingCriteria {
      * @return the beginning timestamp; may be null
      * @throws SQLException if there is a problem accessing the value
      */
-    Timestamp beginTimestampValue() throws SQLException;
+    Object beginTimestampValue() throws SQLException;
 
     /**
      * Get the end of the time period.
@@ -62,7 +62,7 @@ public class TimestampIncrementingCriteria {
      * @return the ending timestamp; never null
      * @throws SQLException if there is a problem accessing the value
      */
-    Timestamp endTimestampValue() throws SQLException;
+    Object endTimestampValue() throws SQLException;
 
     /**
      * Get the last incremented value seen.
@@ -77,19 +77,21 @@ public class TimestampIncrementingCriteria {
 
   protected final Logger log = LoggerFactory.getLogger(getClass());
   protected final List<ColumnId> timestampColumns;
+  protected  final String timestampColumnType;
   protected final ColumnId incrementingColumn;
   protected final TimeZone timeZone;
   private final LruCache<Schema, List<String>> caseAdjustedTimestampColumns;
 
 
   public TimestampIncrementingCriteria(
-      ColumnId incrementingColumn,
-      List<ColumnId> timestampColumns,
-      TimeZone timeZone
+          ColumnId incrementingColumn,
+          List<ColumnId> timestampColumns,
+          String timestampColumnType, TimeZone timeZone
   ) {
     this.timestampColumns =
         timestampColumns != null ? timestampColumns : Collections.<ColumnId>emptyList();
     this.incrementingColumn = incrementingColumn;
+    this.timestampColumnType = timestampColumnType;
     this.timeZone = timeZone;
     this.caseAdjustedTimestampColumns =
         timestampColumns != null ? new LruCache<>(16) : null;
@@ -143,18 +145,37 @@ public class TimestampIncrementingCriteria {
       PreparedStatement stmt,
       CriteriaValues values
   ) throws SQLException {
-    Timestamp beginTime = values.beginTimestampValue();
-    Timestamp endTime = values.endTimestampValue();
+
+    Object beginValue = values.beginTimestampValue();
+    Object endValue = values.endTimestampValue();
     Long incOffset = values.lastIncrementedValue();
-    stmt.setTimestamp(1, endTime, DateTimeUtils.getTimeZoneCalendar(timeZone));
-    stmt.setTimestamp(2, beginTime, DateTimeUtils.getTimeZoneCalendar(timeZone));
-    stmt.setLong(3, incOffset);
-    stmt.setTimestamp(4, beginTime, DateTimeUtils.getTimeZoneCalendar(timeZone));
-    log.debug(
-        "Executing prepared statement with start time value = {} end time = {} and incrementing"
-        + " value = {}", DateTimeUtils.formatTimestamp(beginTime, timeZone),
-        DateTimeUtils.formatTimestamp(endTime, timeZone), incOffset
-    );
+
+    if (this.timestampColumnType == JdbcSourceConnectorConfig.TIMESTAMP_COLUMN_TYPE_DEFAULT) {
+      Timestamp beginTime = (Timestamp)beginValue;
+      Timestamp endTime = (Timestamp)endValue;
+
+      stmt.setTimestamp(1, endTime, DateTimeUtils.getTimeZoneCalendar(timeZone));
+      stmt.setTimestamp(2, beginTime, DateTimeUtils.getTimeZoneCalendar(timeZone));
+      stmt.setLong(3, incOffset);
+      stmt.setTimestamp(4, beginTime, DateTimeUtils.getTimeZoneCalendar(timeZone));
+
+      log.debug(
+              "Executing prepared statement with start time value = {} end time = {}"
+                      + "and incrementing value = {}",
+              DateTimeUtils.formatTimestamp(beginTime, timeZone),
+              DateTimeUtils.formatTimestamp(endTime, timeZone), incOffset);
+
+    } else if (this.timestampColumnType == "BINARY") {
+       stmt.setBytes(1, (byte[])endValue);
+       stmt.setBytes(2, (byte[])beginValue);
+
+       stmt.setLong(3, incOffset);
+       stmt.setBytes(4, (byte[])beginValue);
+
+       log.debug(
+              "Executing prepared statement with start time value = {} end time = {} and incrementing"
+                      + " value = {}", beginValue, endValue, incOffset);
+    }
   }
 
   protected void setQueryParametersIncrementing(
@@ -170,14 +191,29 @@ public class TimestampIncrementingCriteria {
       PreparedStatement stmt,
       CriteriaValues values
   ) throws SQLException {
-    Timestamp beginTime = values.beginTimestampValue();
-    Timestamp endTime = values.endTimestampValue();
-    stmt.setTimestamp(1, beginTime, DateTimeUtils.getTimeZoneCalendar(timeZone));
-    stmt.setTimestamp(2, endTime, DateTimeUtils.getTimeZoneCalendar(timeZone));
-    log.debug("Executing prepared statement with timestamp value = {} end time = {}",
-        DateTimeUtils.formatTimestamp(beginTime, timeZone),
-        DateTimeUtils.formatTimestamp(endTime, timeZone)
-    );
+
+    Object beginValue = values.beginTimestampValue();
+    Object endValue = values.endTimestampValue();
+
+    if (this.timestampColumnType == JdbcSourceConnectorConfig.TIMESTAMP_COLUMN_TYPE_DEFAULT) {
+      Timestamp beginTime = (Timestamp)beginValue;
+      Timestamp endTime = (Timestamp)endValue;
+
+      stmt.setTimestamp(1, beginTime, DateTimeUtils.getTimeZoneCalendar(timeZone));
+      stmt.setTimestamp(2, endTime, DateTimeUtils.getTimeZoneCalendar(timeZone));
+      log.debug("Executing prepared statement with timestamp value = {} end time = {}",
+              DateTimeUtils.formatTimestamp(beginTime, timeZone),
+              DateTimeUtils.formatTimestamp(endTime, timeZone)
+      );
+    } else if (this.timestampColumnType == "BINARY") {
+      stmt.setBytes(1, (byte[])beginValue);
+      stmt.setBytes(2, (byte[])endValue);
+
+      log.debug("Executing prepared statement with timestamp value = {} end time = {}",
+              beginValue,
+              endValue
+      );
+    }
   }
 
   /**

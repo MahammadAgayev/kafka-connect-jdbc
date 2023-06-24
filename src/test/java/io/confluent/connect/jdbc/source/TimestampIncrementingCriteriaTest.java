@@ -68,10 +68,10 @@ public class TimestampIncrementingCriteriaTest {
 
   @Before
   public void beforeEach() {
-    criteria = new TimestampIncrementingCriteria(null, null, utcTimeZone);
-    criteriaInc = new TimestampIncrementingCriteria(INCREMENTING_COLUMN, null, utcTimeZone);
-    criteriaTs = new TimestampIncrementingCriteria(null, TS_COLUMNS, utcTimeZone);
-    criteriaIncTs = new TimestampIncrementingCriteria(INCREMENTING_COLUMN, TS_COLUMNS, utcTimeZone);
+    criteria = new TimestampIncrementingCriteria(null, null, JdbcSourceConnectorConfig.TIMESTAMP_COLUMN_TYPE_DEFAULT, utcTimeZone);
+    criteriaInc = new TimestampIncrementingCriteria(INCREMENTING_COLUMN, null,  JdbcSourceConnectorConfig.TIMESTAMP_COLUMN_TYPE_DEFAULT, utcTimeZone);
+    criteriaTs = new TimestampIncrementingCriteria(null, TS_COLUMNS,  JdbcSourceConnectorConfig.TIMESTAMP_COLUMN_TYPE_DEFAULT, utcTimeZone);
+    criteriaIncTs = new TimestampIncrementingCriteria(INCREMENTING_COLUMN, TS_COLUMNS,  JdbcSourceConnectorConfig.TIMESTAMP_COLUMN_TYPE_DEFAULT, utcTimeZone);
     identifierQuoting = null;
     rules = null;
     builder = null;
@@ -335,7 +335,7 @@ public class TimestampIncrementingCriteriaTest {
     criteriaTs = new TimestampIncrementingCriteria(
         null,
         Collections.singletonList(new ColumnId(TABLE_ID, invalidColumnName)),
-        utcTimeZone
+            JdbcSourceConnectorConfig.TIMESTAMP_COLUMN_TYPE_DEFAULT, utcTimeZone
     );
 
     schema = SchemaBuilder.struct()
@@ -356,7 +356,7 @@ public class TimestampIncrementingCriteriaTest {
     criteriaTs = new TimestampIncrementingCriteria(
         null,
         Collections.singletonList(new ColumnId(TABLE_ID, lowerCaseColumnName)),
-        utcTimeZone
+            JdbcSourceConnectorConfig.TIMESTAMP_COLUMN_TYPE_DEFAULT, utcTimeZone
     );
 
     schema = SchemaBuilder.struct()

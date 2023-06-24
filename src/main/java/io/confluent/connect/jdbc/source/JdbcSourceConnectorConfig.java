@@ -190,6 +190,16 @@ public class JdbcSourceConnectorConfig extends AbstractConfig {
       + "the COALESCE SQL function. Rows whose first non-null timestamp value is greater than the "
       + "largest previous timestamp value seen will be discovered with each poll. At least one "
       + "column should not be nullable.";
+
+  public static final String TIMESTAMP_COLUMN_TYPE_CONFIG = "timestamp.column.type";
+
+  private static final String TIMESTAMP_COLUMN_TYPE_DOC =
+          "The type of the timestamp column to use to set parameters in query.\n"
+                  + "  * TIMESTAMP - data type is timestamp. Default value.\n"
+                  + "  * Binary - data type is binary.";
+  public static final String TIMESTAMP_COLUMN_TYPE_DEFAULT = "TIMESTAMP";
+  private static final String TIMESTAMP_COLUMN_TYPE_DISPLAY = "Timestamp Column Type";
+
   public static final String TIMESTAMP_COLUMN_NAME_DEFAULT = "";
   private static final String TIMESTAMP_COLUMN_NAME_DISPLAY = "Timestamp Column Name";
 
@@ -594,6 +604,17 @@ public class JdbcSourceConnectorConfig extends AbstractConfig {
         ++orderInGroup,
         Width.MEDIUM,
         TIMESTAMP_COLUMN_NAME_DISPLAY,
+        MODE_DEPENDENTS_RECOMMENDER
+    ).define(
+        TIMESTAMP_COLUMN_TYPE_CONFIG,
+        Type.STRING,
+        TIMESTAMP_COLUMN_TYPE_DEFAULT,
+        Importance.MEDIUM,
+        TIMESTAMP_COLUMN_TYPE_DOC,
+        MODE_GROUP,
+        ++orderInGroup,
+        Width.MEDIUM,
+        TIMESTAMP_COLUMN_TYPE_DISPLAY,
         MODE_DEPENDENTS_RECOMMENDER
     ).define(
         TIMESTAMP_INITIAL_CONFIG,

@@ -157,6 +157,7 @@ public class GenericDatabaseDialect implements DatabaseDialect {
   private final int batchMaxRows;
   private final TimeZone timeZone;
   private final JdbcSourceConnectorConfig.TimestampGranularity tsGranularity;
+  private final String timestampColumnType;
 
   /**
    * Create a new dialect instance with the given connector configuration.
@@ -218,6 +219,13 @@ public class GenericDatabaseDialect implements DatabaseDialect {
       tsGranularity = TimestampGranularity.get((JdbcSourceConnectorConfig) config);
     } else {
       tsGranularity = TimestampGranularity.CONNECT_LOGICAL;
+    }
+
+    if (config instanceof  JdbcSourceConnectorConfig) {
+      timestampColumnType = ((JdbcSourceConnectorConfig)config)
+              .getString(JdbcSourceConnectorConfig.TIMESTAMP_COLUMN_TYPE_CONFIG);
+    } else {
+      timestampColumnType = JdbcSourceConnectorConfig.TIMESTAMP_COLUMN_TYPE_DEFAULT;
     }
   }
 
@@ -987,7 +995,10 @@ public class GenericDatabaseDialect implements DatabaseDialect {
       ColumnId incrementingColumn,
       List<ColumnId> timestampColumns
   ) {
-    return new TimestampIncrementingCriteria(incrementingColumn, timestampColumns, timeZone);
+    return new TimestampIncrementingCriteria(incrementingColumn,
+            timestampColumns,
+            this.timestampColumnType,
+            timeZone);
   }
 
   /**

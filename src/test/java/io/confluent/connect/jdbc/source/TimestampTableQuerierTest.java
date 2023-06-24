@@ -93,6 +93,7 @@ public class TimestampTableQuerierTest {
         tableName,
         "",
         TIMESTAMP_COLUMNS,
+        JdbcSourceConnectorConfig.TIMESTAMP_COLUMN_TYPE_DEFAULT,
         new TimestampIncrementingOffset(initialTimestampOffset, null).toMap(),
         10211197100L, // Timestamp delay
         TimeZone.getTimeZone("UTC"),

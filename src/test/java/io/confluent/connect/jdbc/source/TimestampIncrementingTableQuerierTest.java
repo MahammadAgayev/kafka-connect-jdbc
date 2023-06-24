@@ -95,6 +95,7 @@ public class TimestampIncrementingTableQuerierTest {
         tableName,
         "",
         timestampMode ? TIMESTAMP_COLUMNS : null,
+        JdbcSourceConnectorConfig.TIMESTAMP_COLUMN_TYPE_DEFAULT,
         INCREMENTING_COLUMN,
         initialOffset.toMap(),
         10211197100L, // Timestamp delay

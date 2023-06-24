@@ -66,6 +66,7 @@ public class TimestampIncrementingTableQuerier extends TableQuerier implements C
   );
 
   protected final List<String> timestampColumnNames;
+  protected  final  String timestampColumnType;
   protected TimestampIncrementingOffset committedOffset;
   protected TimestampIncrementingOffset offset;
   protected TimestampIncrementingCriteria criteria;
@@ -80,6 +81,7 @@ public class TimestampIncrementingTableQuerier extends TableQuerier implements C
   public TimestampIncrementingTableQuerier(DatabaseDialect dialect, QueryMode mode, String name,
                                            String topicPrefix,
                                            List<String> timestampColumnNames,
+                                           String timestampColumnType,
                                            String incrementingColumnName,
                                            Map<String, Object> offsetMap, Long timestampDelay,
                                            TimeZone timeZone, String suffix,
@@ -115,6 +117,7 @@ public class TimestampIncrementingTableQuerier extends TableQuerier implements C
 
     this.timeZone = timeZone;
     this.timestampGranularity = timestampGranularity;
+    this.timestampColumnType = timestampColumnType;
   }
 
   /**
@@ -242,17 +245,36 @@ public class TimestampIncrementingTableQuerier extends TableQuerier implements C
   }
 
   @Override
-  public Timestamp beginTimestampValue() {
+  public Object beginTimestampValue() {
     return offset.getTimestampOffset();
   }
 
   @Override
-  public Timestamp endTimestampValue()  throws SQLException {
-    final long currentDbTime = dialect.currentTimeOnDB(
-        stmt.getConnection(),
-        DateTimeUtils.getTimeZoneCalendar(timeZone)
-    ).getTime();
-    return new Timestamp(currentDbTime - timestampDelay);
+  public Object endTimestampValue()  throws SQLException {
+
+    if (timestampColumnType == "BINARY") {
+        ExpressionBuilder builder = dialect.expressionBuilder()
+               .append("select  max(")
+               .append(timestampColumns.get(0))
+               .append(") from ")
+               .append(tableId);
+
+        stmt = dialect.createPreparedStatement(stmt.getConnection(), builder.toString());
+
+        ResultSet result =  stmt.executeQuery();
+
+        if (result.next() == false) {
+          throw new SQLException("Unable get max timestamp column value from table " + tableId);
+        }
+
+        return  result.getBytes(0);
+    }
+
+      final long currentDbTime = dialect.currentTimeOnDB(
+              stmt.getConnection(),
+              DateTimeUtils.getTimeZoneCalendar(timeZone)
+      ).getTime();
+      return new Timestamp(currentDbTime - timestampDelay);
   }
 
   @Override

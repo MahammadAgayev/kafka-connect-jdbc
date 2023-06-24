@@ -53,7 +53,7 @@ public class TableQuerierTest {
     when(databaseDialectMock.expressionBuilder())
       .thenReturn(ExpressionBuilder.create());
     when(databaseDialectMock.criteriaFor(Matchers.any(ColumnId.class), Matchers.anyListOf(ColumnId.class)))
-      .thenReturn(new TimestampIncrementingCriteria(new ColumnId(new TableId(null,null,TABLE_NAME),INCREMENTING_COLUMN_NAME), null,null));
+      .thenReturn(new TimestampIncrementingCriteria(new ColumnId(new TableId(null,null,TABLE_NAME),INCREMENTING_COLUMN_NAME), null, JdbcSourceConnectorConfig.TIMESTAMP_COLUMN_TYPE_DEFAULT, null));
 	    
     connectionMock = mock(Connection.class);	  
   }
@@ -66,6 +66,7 @@ public class TableQuerierTest {
                                                     TABLE_NAME, 
                                                     null, 
                                                     null,
+                                                    JdbcSourceConnectorConfig.TIMESTAMP_COLUMN_TYPE_DEFAULT,
                                                     INCREMENTING_COLUMN_NAME, 
                                                     null,
                                                     TIMESTAMP_DELAY,
@@ -86,7 +87,8 @@ public class TableQuerierTest {
                                                     QueryMode.QUERY, 
                                                     QUERY, 
                                                     null, 
-                                                    null, 
+                                                    null,
+                                                    null,
                                                     INCREMENTING_COLUMN_NAME, 
                                                     null, 
                                                     TIMESTAMP_DELAY, 
