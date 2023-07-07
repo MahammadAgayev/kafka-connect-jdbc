@@ -332,8 +332,15 @@ public class JdbcSourceTask extends SourceTask {
       return partitionOffset;
     } else {
       Map<String, Object> initialPartitionOffset = null;
+
+      if(config.getString(JdbcSourceConnectorConfig.TIMESTAMP_COLUMN_TYPE_CONFIG).equals(JdbcSourceConnectorConfig.TIMESTAMP_COLUMN_TYPE_BINARY)) {
+        //add initial parition offset
+        return null;
+      }
+
       // no offsets found
       Long timestampInitial = config.getLong(JdbcSourceConnectorConfig.TIMESTAMP_INITIAL_CONFIG);
+
       if (timestampInitial != null) {
         // start at the specified timestamp
         if (timestampInitial == JdbcSourceConnectorConfig.TIMESTAMP_INITIAL_CURRENT) {

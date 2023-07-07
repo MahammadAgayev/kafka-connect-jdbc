@@ -19,7 +19,7 @@ import java.time.ZoneOffset;
 import java.util.Collections;
 import java.util.TimeZone;
 
-import io.confluent.connect.jdbc.util.DateTimeUtils;
+import io.confluent.connect.jdbc.util.*;
 import org.apache.kafka.connect.data.Decimal;
 import org.apache.kafka.connect.data.Schema;
 import org.apache.kafka.connect.data.SchemaBuilder;
@@ -36,11 +36,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import io.confluent.connect.jdbc.source.JdbcSourceConnectorConfig.TimestampGranularity;
-import io.confluent.connect.jdbc.util.ColumnId;
-import io.confluent.connect.jdbc.util.ExpressionBuilder;
-import io.confluent.connect.jdbc.util.IdentifierRules;
-import io.confluent.connect.jdbc.util.QuoteMethod;
-import io.confluent.connect.jdbc.util.TableId;
 
 import static org.junit.Assert.assertEquals;
 
@@ -96,7 +91,7 @@ public class TimestampIncrementingCriteriaTest {
     }
     TimestampIncrementingOffset offset = criteria.extractValues(schema, record,
         null, timestampGranularity);
-    assertEquals(expectedT, offset.getTimestampOffset());
+    assertEquals(expectedT, offset.getTimestampOffset(TimestampColumnTypeUtil.TimestampDefault));
     assertEquals(expected, offset.getIncrementingOffset());
   }
 
@@ -301,7 +296,7 @@ public class TimestampIncrementingCriteriaTest {
         .put(TS1_COLUMN.name().toUpperCase(), TS1)
         .put(TS2_COLUMN.name(), TS2);
     TimestampIncrementingOffset offset = criteriaTs.extractValues(schema, record, null, TimestampGranularity.CONNECT_LOGICAL);
-    assertEquals(TS1, offset.getTimestampOffset());
+    assertEquals(TS1, offset.getTimestampOffset(TimestampColumnTypeUtil.TimestampDefault));
   }
 
   @Test
@@ -367,7 +362,7 @@ public class TimestampIncrementingCriteriaTest {
         .put(lowerCaseColumnName, TS1)
         .put(upperCaseColumnName, TS2);
     TimestampIncrementingOffset offset = criteriaTs.extractValues(schema, record, null, TimestampGranularity.CONNECT_LOGICAL);
-    assertEquals(TS1, offset.getTimestampOffset());
+    assertEquals(TS1, offset.getTimestampOffset(TimestampColumnTypeUtil.TimestampDefault));
   }
 
   @Test

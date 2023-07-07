@@ -15,6 +15,7 @@
 
 package io.confluent.connect.jdbc.source;
 
+import io.confluent.connect.jdbc.util.TimestampColumnTypeUtil;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -47,9 +48,9 @@ public class TimestampIncrementingOffsetTest {
   @Test
   public void testDefaults() {
     assertEquals(-1, unset.getIncrementingOffset());
-    assertNotNull(unset.getTimestampOffset());
-    assertEquals(0, unset.getTimestampOffset().getTime());
-    assertEquals(0, unset.getTimestampOffset().getNanos());
+    assertNotNull(unset.getTimestampOffset(TimestampColumnTypeUtil.TimestampDefault));
+    assertEquals(0,  ((Timestamp)unset.getTimestampOffset(TimestampColumnTypeUtil.TimestampDefault)).getTime());
+    assertEquals(0, ((Timestamp)unset.getTimestampOffset(TimestampColumnTypeUtil.TimestampDefault)).getNanos());
   }
 
   @Test
@@ -72,13 +73,13 @@ public class TimestampIncrementingOffsetTest {
 
   @Test
   public void testGetTimestampOffset() {
-    assertNotNull(unset.getTimestampOffset());
+    assertNotNull(unset.getTimestampOffset(TimestampColumnTypeUtil.TimestampDefault));
     Timestamp zero = new Timestamp(0);
-    assertEquals(zero, unset.getTimestampOffset());
-    assertEquals(ts, tsOnly.getTimestampOffset());
-    assertEquals(zero, incOnly.getTimestampOffset());
-    assertEquals(ts, tsInc.getTimestampOffset());
-    assertEquals(nanos, nanosOffset.getTimestampOffset());
+    assertEquals(zero, unset.getTimestampOffset(TimestampColumnTypeUtil.TimestampDefault));
+    assertEquals(ts, tsOnly.getTimestampOffset(TimestampColumnTypeUtil.TimestampDefault));
+    assertEquals(zero, incOnly.getTimestampOffset(TimestampColumnTypeUtil.TimestampDefault));
+    assertEquals(ts, tsInc.getTimestampOffset(TimestampColumnTypeUtil.TimestampDefault));
+    assertEquals(nanos, nanosOffset.getTimestampOffset(TimestampColumnTypeUtil.TimestampDefault));
   }
 
   @Test

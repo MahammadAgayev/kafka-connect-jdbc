@@ -34,6 +34,8 @@ import io.confluent.connect.jdbc.dialect.DatabaseDialect;
 import io.confluent.connect.jdbc.dialect.DatabaseDialect.ColumnConverter;
 import io.confluent.connect.jdbc.util.ColumnDefinition;
 import io.confluent.connect.jdbc.util.ColumnId;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A mapping from a result set into a {@link Schema}. This mapping contains an array of {@link
@@ -45,6 +47,7 @@ import io.confluent.connect.jdbc.util.ColumnId;
  * function.
  */
 public final class SchemaMapping {
+  private static final Logger log = LoggerFactory.getLogger(JdbcSourceTask.class);
 
   /**
    * Convert the result set into a {@link Schema}.
@@ -66,6 +69,9 @@ public final class SchemaMapping {
     int columnNumber = 0;
     for (ColumnDefinition colDefn : colDefns.values()) {
       ++columnNumber;
+
+      log.debug("got column definition {}", colDefn);
+
       String fieldName = dialect.addFieldToSchema(colDefn, builder);
       if (fieldName == null) {
         continue;

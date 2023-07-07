@@ -55,7 +55,6 @@ public class JdbcSinkConnector extends SinkConnector {
     }
     return configs;
   }
-
   @Override
   public void start(Map<String, String> props) {
     configProps = props;

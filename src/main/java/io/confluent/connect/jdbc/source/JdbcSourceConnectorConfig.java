@@ -196,8 +196,9 @@ public class JdbcSourceConnectorConfig extends AbstractConfig {
   private static final String TIMESTAMP_COLUMN_TYPE_DOC =
           "The type of the timestamp column to use to set parameters in query.\n"
                   + "  * TIMESTAMP - data type is timestamp. Default value.\n"
-                  + "  * Binary - data type is binary.";
+                  + "  * BINARY - data type is binary.";
   public static final String TIMESTAMP_COLUMN_TYPE_DEFAULT = "TIMESTAMP";
+  public static final String TIMESTAMP_COLUMN_TYPE_BINARY = "BINARY";
   private static final String TIMESTAMP_COLUMN_TYPE_DISPLAY = "Timestamp Column Type";
 
   public static final String TIMESTAMP_COLUMN_NAME_DEFAULT = "";

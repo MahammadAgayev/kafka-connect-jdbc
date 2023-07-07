@@ -19,6 +19,7 @@ package io.confluent.connect.jdbc.source;
 import io.confluent.connect.jdbc.dialect.DatabaseDialect;
 import io.confluent.connect.jdbc.util.ExpressionBuilder;
 import io.confluent.connect.jdbc.util.TableId;
+import io.confluent.connect.jdbc.util.TimestampColumnTypeUtil;
 import org.apache.kafka.connect.data.Schema;
 import org.apache.kafka.connect.data.SchemaBuilder;
 import org.apache.kafka.connect.source.SourceRecord;
@@ -298,7 +299,7 @@ public class TimestampTableQuerierTest {
     querier.reset(0, true);
     querier.maybeStartQuery(db);
 
-    assertEquals(querier.offset.getTimestampOffset(), INITIAL_TS);
+    assertEquals(querier.offset.getTimestampOffset(TimestampColumnTypeUtil.TimestampDefault), INITIAL_TS);
   }
 
   @Test
@@ -325,7 +326,7 @@ public class TimestampTableQuerierTest {
     querier.reset(0, false);
     querier.maybeStartQuery(db);
 
-    assertEquals(querier.offset.getTimestampOffset(), firstNewTimestamp);
+    assertEquals(querier.offset.getTimestampOffset(TimestampColumnTypeUtil.TimestampDefault), firstNewTimestamp);
   }
 
   private void assertNextRecord(
@@ -334,7 +335,7 @@ public class TimestampTableQuerierTest {
     assertTrue(querier.next());
     SourceRecord record = querier.extractRecord();
     TimestampIncrementingOffset actualOffset =TimestampIncrementingOffset.fromMap(record.sourceOffset()); 
-    assertEquals(expectedTimestampOffset, actualOffset.getTimestampOffset());
+    assertEquals(expectedTimestampOffset, actualOffset.getTimestampOffset(TimestampColumnTypeUtil.TimestampDefault));
   }
 
   private void expectRecord(Timestamp timestamp) throws Exception {

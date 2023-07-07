@@ -19,7 +19,7 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.TimeZone;
 
-import io.confluent.connect.jdbc.util.LruCache;
+import io.confluent.connect.jdbc.util.*;
 import org.apache.kafka.connect.data.Decimal;
 import org.apache.kafka.connect.data.Field;
 import org.apache.kafka.connect.data.Schema;
@@ -36,10 +36,6 @@ import java.sql.Timestamp;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import io.confluent.connect.jdbc.util.ColumnId;
-import io.confluent.connect.jdbc.util.DateTimeUtils;
-import io.confluent.connect.jdbc.util.ExpressionBuilder;
 
 public class TimestampIncrementingCriteria {
 
@@ -150,7 +146,7 @@ public class TimestampIncrementingCriteria {
     Object endValue = values.endTimestampValue();
     Long incOffset = values.lastIncrementedValue();
 
-    if (this.timestampColumnType == JdbcSourceConnectorConfig.TIMESTAMP_COLUMN_TYPE_DEFAULT) {
+    if (this.timestampColumnType.equals(JdbcSourceConnectorConfig.TIMESTAMP_COLUMN_TYPE_DEFAULT)) {
       Timestamp beginTime = (Timestamp)beginValue;
       Timestamp endTime = (Timestamp)endValue;
 
@@ -165,7 +161,7 @@ public class TimestampIncrementingCriteria {
               DateTimeUtils.formatTimestamp(beginTime, timeZone),
               DateTimeUtils.formatTimestamp(endTime, timeZone), incOffset);
 
-    } else if (this.timestampColumnType == "BINARY") {
+    } else if (this.timestampColumnType.equals(JdbcSourceConnectorConfig.TIMESTAMP_COLUMN_TYPE_BINARY)) {
        stmt.setBytes(1, (byte[])endValue);
        stmt.setBytes(2, (byte[])beginValue);
 
@@ -231,12 +227,11 @@ public class TimestampIncrementingCriteria {
       TimestampIncrementingOffset previousOffset,
       JdbcSourceConnectorConfig.TimestampGranularity timestampGranularity
   ) {
-    Timestamp extractedTimestamp = null;
+    Object extractedTimestamp = null;
     if (hasTimestampColumns()) {
       extractedTimestamp = extractOffsetTimestamp(schema, record, timestampGranularity);
-      assert previousOffset == null || (previousOffset.getTimestampOffset() != null
-                                        && previousOffset.getTimestampOffset().compareTo(
-          extractedTimestamp) <= 0
+      assert previousOffset == null || (previousOffset.getTimestampOffset(TimestampColumnTypeUtil.getDefault(timestampColumnType)) != null
+                                        && new Comparer(previousOffset).before(extractedTimestamp)
       );
     }
     Long extractedId = null;
@@ -259,14 +254,21 @@ public class TimestampIncrementingCriteria {
    * @param timestampGranularity defines the configured granularity of the timestamp field
    * @return the timestamp for this row; may not be null
    */
-  protected Timestamp extractOffsetTimestamp(
+  protected Object extractOffsetTimestamp(
       Schema schema,
       Struct record,
       JdbcSourceConnectorConfig.TimestampGranularity timestampGranularity
   ) {
     caseAdjustedTimestampColumns.computeIfAbsent(schema, this::findCaseSensitiveTimestampColumns);
+
     for (String timestampColumn : caseAdjustedTimestampColumns.get(schema)) {
-      Timestamp ts = timestampGranularity.toTimestamp.apply(record.get(timestampColumn), timeZone);
+
+      Object val = record.get(timestampColumn);
+      if(val instanceof byte[]) {
+        return  val;
+      }
+
+      Timestamp ts = timestampGranularity.toTimestamp.apply(val, timeZone);
       if (ts != null) {
         return ts;
       }

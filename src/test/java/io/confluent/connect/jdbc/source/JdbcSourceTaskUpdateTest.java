@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 
+import io.confluent.connect.jdbc.util.TimestampColumnTypeUtil;
 import org.apache.kafka.common.config.ConfigException;
 import org.apache.kafka.connect.data.Struct;
 import org.apache.kafka.connect.errors.ConnectException;
@@ -1112,7 +1113,7 @@ public class JdbcSourceTaskUpdateTest extends JdbcSourceTaskTestBase {
         }
         case TIMESTAMP_OFFSET: {
           TimestampIncrementingOffset offset = TimestampIncrementingOffset.fromMap(record.sourceOffset());
-          Timestamp rawTimestamp = offset.getTimestampOffset();
+          Timestamp rawTimestamp = (Timestamp) offset.getTimestampOffset(TimestampColumnTypeUtil.TimestampDefault);
           extracted = (T) (Long) rawTimestamp.getTime();
           break;
         }
@@ -1154,7 +1155,7 @@ public class JdbcSourceTaskUpdateTest extends JdbcSourceTaskTestBase {
     // Should use timestamps as offsets
     for(SourceRecord record : records) {
       Timestamp timestampValue = (Timestamp) ((Struct)record.value()).get("modified");
-      Timestamp offsetValue = TimestampIncrementingOffset.fromMap(record.sourceOffset()).getTimestampOffset();
+      Timestamp offsetValue = (Timestamp) TimestampIncrementingOffset.fromMap(record.sourceOffset()).getTimestampOffset(TimestampColumnTypeUtil.TimestampDefault);
       assertTrue(
           String.format("Invalid timestamp {} and offset {} combination.", timestampValue,
               offsetValue),
@@ -1169,7 +1170,7 @@ public class JdbcSourceTaskUpdateTest extends JdbcSourceTaskTestBase {
       if (timestampValue == null) {
         timestampValue = (Timestamp) ((Struct)record.value()).get("created");
       }
-      Timestamp offsetValue = TimestampIncrementingOffset.fromMap(record.sourceOffset()).getTimestampOffset();
+      Timestamp offsetValue = (Timestamp) TimestampIncrementingOffset.fromMap(record.sourceOffset()).getTimestampOffset(TimestampColumnTypeUtil.TimestampDefault);
       assertEquals(timestampValue, offsetValue);
     }
   }

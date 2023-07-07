@@ -17,6 +17,8 @@ package io.confluent.connect.jdbc.source;
 
 import java.util.TimeZone;
 
+import io.confluent.connect.jdbc.util.Comparer;
+import io.confluent.connect.jdbc.util.TimestampColumnTypeUtil;
 import org.apache.kafka.connect.data.Schema;
 import org.apache.kafka.connect.data.Struct;
 import org.apache.kafka.connect.errors.ConnectException;
@@ -52,7 +54,7 @@ public class TimestampTableQuerier extends TimestampIncrementingTableQuerier {
 
   private boolean exhaustedResultSet;
   private PendingRecord nextRecord;
-  private Timestamp latestCommittableTimestamp;
+  private Object latestCommittableTimestamp;
 
   public TimestampTableQuerier(
       DatabaseDialect dialect,
@@ -82,7 +84,7 @@ public class TimestampTableQuerier extends TimestampIncrementingTableQuerier {
         timestampGranularity
     );
 
-    this.latestCommittableTimestamp = this.offset.getTimestampOffset();
+    this.latestCommittableTimestamp = this.offset.getTimestampOffset(TimestampColumnTypeUtil.getDefault(timestampColumnType));
     this.exhaustedResultSet = false;
     this.nextRecord = null;
   }
@@ -159,14 +161,14 @@ public class TimestampTableQuerier extends TimestampIncrementingTableQuerier {
         offset,
         timestampGranularity
     );
-    Timestamp timestamp = timestampOffset.hasTimestampOffset()
-                          ? timestampOffset.getTimestampOffset()
+    Object timestamp = timestampOffset.hasTimestampOffset()
+                          ? timestampOffset.getTimestampOffset(TimestampColumnTypeUtil.getDefault(timestampColumnType))
                           : null;
     return new PendingRecord(partition, timestamp, topic, record.schema(), record);
   }
 
-  private boolean canCommitTimestamp(Timestamp current, Timestamp next) {
-    return current == null || next == null || current.before(next);
+  private boolean canCommitTimestamp(Object current, Object next) {
+    return current == null || next == null || new Comparer(current).before(next);
   }
 
   @Override
@@ -187,14 +189,14 @@ public class TimestampTableQuerier extends TimestampIncrementingTableQuerier {
 
   private static class PendingRecord {
     private final Map<String, String> partition;
-    private final Timestamp timestamp;
+    private final Object timestamp;
     private final String topic;
     private final Schema valueSchema;
     private final Object value;
 
     public PendingRecord(
         Map<String, String> partition,
-        Timestamp timestamp,
+        Object timestamp,
         String topic,
         Schema valueSchema,
         Object value
@@ -209,7 +211,7 @@ public class TimestampTableQuerier extends TimestampIncrementingTableQuerier {
     /**
      * @return the timestamp value for the row that generated this record
      */
-    public Timestamp timestamp() {
+    public Object timestamp() {
       return timestamp;
     }
 
